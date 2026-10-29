@@ -124,22 +124,18 @@ export default function LoginPage() {
 
         {/* Center Content: Logo & Brand Description */}
         <div className="relative z-10 flex flex-col items-center justify-center text-center max-w-sm animate-in fade-in slide-in-from-left-8 duration-700">
-          {/* Customized Spiral Network Logo with rotating ring effect */}
-          <div className="relative mb-8 flex h-44 w-44 items-center justify-center rounded-full p-3 shadow-2xl border border-zinc-200/60 bg-zinc-50/50 group">
-            {/* Pulsing gradient glow behind logo */}
-            <div className={`absolute inset-0 rounded-full opacity-10 blur-xl group-hover:opacity-20 transition-all duration-300 bg-gradient-to-tr ${isDark ? "from-willow-green to-seagrass" : "from-cerulean to-dark-cyan"
-              }`} />
-
+          {/* Brand Logo - Background circle removed completely, logo slightly bigger */}
+          <div className="relative mb-8 flex items-center justify-center">
             {appLogo ? (
               <img
                 src={appLogo}
                 alt={appName}
-                className="max-h-32 max-w-32 object-contain"
+                className="h-40 w-40 max-h-40 max-w-40 object-contain"
               />
             ) : (
               <svg
                 viewBox="0 0 100 100"
-                className={`w-32 h-32 animate-[spin_45s_linear_infinite] transition-colors duration-300 ${isDark ? "text-willow-green" : "text-cerulean"
+                className={`w-36 h-36 animate-[spin_45s_linear_infinite] transition-colors duration-300 ${isDark ? "text-willow-green" : "text-cerulean"
                   }`}
                 fill="none"
                 stroke="currentColor"
@@ -235,20 +231,17 @@ export default function LoginPage() {
 
           {/* Mobile-only Brand Header (hidden on desktop) */}
           <div className="flex flex-col items-center justify-center text-center lg:hidden mb-4 animate-in fade-in slide-in-from-top-6 duration-700">
-            <div
-              className={`mb-3 flex h-20 w-20 items-center justify-center rounded-full p-1 shadow-md border ${isDark ? "border-slate-800 bg-slate-900" : "border-slate-200 bg-slate-50"
-                }`}
-            >
+            <div className="mb-3 flex items-center justify-center">
               {appLogo ? (
                 <img
                   src={appLogo}
                   alt={appName}
-                  className={`max-h-14 max-w-14 object-contain ${isDark ? "invert brightness-200" : ""}`}
+                  className="h-18 w-18 max-h-20 max-w-20 object-contain"
                 />
               ) : (
                 <svg
                   viewBox="0 0 100 100"
-                  className={`w-14 h-14 animate-[spin_60s_linear_infinite] transition-colors duration-300 ${isDark ? 'text-willow-green' : 'text-primary-600'}`}
+                  className={`w-16 h-16 animate-[spin_60s_linear_infinite] transition-colors duration-300 ${isDark ? 'text-willow-green' : 'text-primary-600'}`}
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2.5"

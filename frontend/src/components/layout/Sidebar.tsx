@@ -355,7 +355,7 @@ export function Sidebar({ className }: { className?: string }) {
           <div className={cn("flex items-center gap-2.5 min-w-0", isSidebarCollapsed && "justify-center")}>
             {appLogo ? (
               <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 flex items-center justify-center">
-                <img src={appLogo} alt={appName} className="w-full h-full object-contain dark:invert" />
+                <img src={appLogo} alt={appName} className="w-full h-full object-contain" />
               </div>
             ) : (
               <div className="bg-primary-600 rounded-lg w-9 h-9 flex items-center justify-center text-white text-sm font-extrabold shrink-0 shadow-xs">
