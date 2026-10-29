@@ -1,0 +1,70 @@
+import { Stack } from 'expo-router';
+export { ErrorBoundary } from 'expo-router';
+import { LogBox } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { NavigationBar } from 'expo-navigation-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AuthProvider } from '../context/AuthContext';
+import { DutyProvider } from '../context/DutyContext';
+import { DeliveryProvider } from '../context/DeliveryContext';
+import { LanguageProvider } from '../context/LanguageContext';
+import { SettingsProvider } from '../context/SettingsContext';
+import { SettingsToast } from '../components/common/SettingsToast';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React from 'react';
+
+LogBox.ignoreLogs([
+  'Unable to activate keep awake',
+  'tracking-X relative letter spacing classes require font-size to be set',
+  "Can't perform a React state update on a component that hasn't mounted yet",
+  "Can't perform a React state update on an unmounted component",
+]);
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      gcTime: 1000 * 60 * 30,
+    },
+  },
+});
+
+function InitialLayout() {
+  return (
+    <>
+      <NavigationBar style="light" />
+      <SettingsToast />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: '#047857' },
+        }}
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="login" />
+        <Stack.Screen name="onboarding" />
+        <Stack.Screen name="home" />
+      </Stack>
+    </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <SafeAreaProvider style={{ flex: 1, backgroundColor: '#047857' }}>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <DutyProvider>
+            <DeliveryProvider>
+              <LanguageProvider>
+                <SettingsProvider>
+                  <InitialLayout />
+                </SettingsProvider>
+              </LanguageProvider>
+            </DeliveryProvider>
+          </DutyProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>
+  );
+}

@@ -1,0 +1,68 @@
+{
+  "expo": {
+    "name": "Grocery Mart Partner",
+    "slug": "grocery-mart-partner",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon_square.png",
+    "scheme": "partner-app",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.grocerymart.partner",
+      "adaptiveIcon": {
+        "backgroundColor": "#0F172A",
+        "foregroundImage": "./assets/images/icon_square.png"
+      },
+      "edgeToEdgeEnabled": true,
+      "navigationBar": {
+        "backgroundColor": "#047857",
+        "barStyle": "light-content"
+      }
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/icon_square.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-navigation-bar",
+        {
+          "style": "light",
+          "enforceContrast": false
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/zytrixon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#0F172A",
+          "dark": {
+            "backgroundColor": "#0F172A"
+          }
+        }
+      ],
+      "@react-native-community/datetimepicker",
+      "expo-font",
+      "expo-image",
+      "expo-status-bar",
+      "expo-web-browser"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "718cd964-cf50-48c4-9c7f-0f4e22dd997e"
+      }
+    }
+  }
+}

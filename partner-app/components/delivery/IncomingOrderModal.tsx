@@ -1,0 +1,316 @@
+import React, { useEffect } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  Vibration,
+  Platform,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { WebView } from 'react-native-webview';
+import { useDeliveryContext } from '../../context/DeliveryContext';
+import { useSettingsContext } from '../../context/SettingsContext';
+import { Typography } from '../../constants/typography';
+import { DeliveryOrder } from '../../constants/mockData';
+import tw from 'twrnc';
+
+export interface IncomingOrderModalProps {
+  visible?: boolean;
+  order?: DeliveryOrder | null;
+  onAccept?: () => void;
+  onReject?: () => void;
+}
+
+export const IncomingOrderModal: React.FC<IncomingOrderModalProps> = ({
+  visible,
+  order: propOrder,
+  onAccept: propOnAccept,
+  onReject: propOnReject,
+}) => {
+  const insets = useSafeAreaInsets();
+  const context = useDeliveryContext();
+  const { settings, showToast, getNavAppName } = useSettingsContext();
+  const incomingOrder = propOrder ?? context.incomingOrder;
+  const acceptIncomingOrder = propOnAccept ?? context.acceptIncomingOrder;
+  const rejectIncomingOrder = propOnReject ?? context.rejectIncomingOrder;
+
+  useEffect(() => {
+    if (incomingOrder?.id && visible !== false) {
+      // Continuous rhythmic vibration (0ms wait, 500ms vibrate, 300ms pause, 500ms vibrate)
+      Vibration.vibrate([0, 500, 300, 500], true);
+    } else {
+      Vibration.cancel();
+    }
+
+    return () => {
+      Vibration.cancel();
+    };
+  }, [incomingOrder?.id, visible]);
+
+  if (!incomingOrder || !incomingOrder.id || visible === false) return null;
+
+  const totalDistance = (
+    (incomingOrder.storeDistanceKm || 0.8) + (incomingOrder.customerDistanceKm || 2.4)
+  ).toFixed(1);
+
+  const handleAcceptWithSettings = () => {
+    Vibration.cancel();
+    if (settings.autoNavigate) {
+      showToast(`🚀 Auto-Navigating via ${getNavAppName()}`);
+    }
+    acceptIncomingOrder();
+  };
+
+  const handleReject = () => {
+    Vibration.cancel();
+    rejectIncomingOrder();
+  };
+
+  return (
+    <Modal visible={!!incomingOrder} transparent animationType="slide" statusBarTranslucent>
+      {/* 100% Reliable Cross-Platform Alert Sound Chime */}
+      {settings.soundAlerts !== false && (
+        <View style={{ width: 0, height: 0, opacity: 0, position: 'absolute' }}>
+          <WebView
+            originWhitelist={['*']}
+            source={{
+              html: `
+                <!DOCTYPE html>
+                <html>
+                  <head><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+                  <body>
+                    <script>
+                      try {
+                        var AudioContext = window.AudioContext || window.webkitAudioContext;
+                        if (AudioContext) {
+                          var ctx = new AudioContext();
+                          function chime() {
+                            if (ctx.state === 'suspended') {
+                              ctx.resume();
+                            }
+                            var t = ctx.currentTime;
+                            // High-pitched pleasant dual-tone chime
+                            var o1 = ctx.createOscillator();
+                            var g1 = ctx.createGain();
+                            o1.type = 'sine';
+                            o1.frequency.setValueAtTime(784, t);
+                            g1.gain.setValueAtTime(0.7, t);
+                            g1.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+                            o1.connect(g1);
+                            g1.connect(ctx.destination);
+                            o1.start(t);
+                            o1.stop(t + 0.3);
+
+                            var o2 = ctx.createOscillator();
+                            var g2 = ctx.createGain();
+                            o2.type = 'sine';
+                            o2.frequency.setValueAtTime(1046.5, t + 0.15);
+                            g2.gain.setValueAtTime(0.8, t + 0.15);
+                            g2.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+                            o2.connect(g2);
+                            g2.connect(ctx.destination);
+                            o2.start(t + 0.15);
+                            o2.stop(t + 0.55);
+                          }
+                          chime();
+                          setInterval(chime, 1500);
+                        }
+                      } catch (e) {}
+                    </script>
+                  </body>
+                </html>
+              `,
+            }}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            allowsInlineMediaPlayback={true}
+            mediaPlaybackRequiresUserAction={false}
+          />
+        </View>
+      )}
+
+      <View style={[tw`flex-1 justify-end`, { backgroundColor: 'rgba(15, 23, 42, 0.68)' }]}>
+        <View
+          style={[
+            tw`bg-white rounded-t-3xl border-t-2 border-emerald-500 shadow-2xl p-4`,
+            { paddingBottom: Math.max(insets.bottom, 20) + 8 },
+          ]}
+        >
+          {/* Top Grabber Handle */}
+          <View style={tw`w-10 h-1 rounded-full bg-slate-200 self-center mb-2`} />
+
+          {/* Active Settings Status Indicators */}
+          <View style={tw`flex-row justify-center items-center gap-2 mb-2`}>
+            <View style={tw`flex-row items-center px-2 py-0.5 rounded-full ${settings.soundAlerts ? 'bg-emerald-50 border border-emerald-200' : 'bg-slate-100 border border-slate-200'}`}>
+              <Ionicons name={settings.soundAlerts ? 'volume-high' : 'volume-mute'} size={10} color={settings.soundAlerts ? '#047857' : '#94A3B8'} style={tw`mr-1`} />
+              <Text style={tw`text-[9px] font-extrabold ${settings.soundAlerts ? 'text-emerald-800' : 'text-slate-500'}`}>
+                {settings.soundAlerts ? 'Siren Ringing 🔊' : 'Muted 🔇'}
+              </Text>
+            </View>
+
+            {settings.screenWake && (
+              <View style={tw`flex-row items-center px-2 py-0.5 rounded-full bg-blue-50 border border-blue-200`}>
+                <Ionicons name="phone-portrait" size={10} color="#2563EB" style={tw`mr-1`} />
+                <Text style={tw`text-[9px] font-extrabold text-blue-700`}>Screen Awake 📱</Text>
+              </View>
+            )}
+
+            {settings.autoNavigate && (
+              <View style={tw`flex-row items-center px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200`}>
+                <Ionicons name="navigate" size={10} color="#D97706" style={tw`mr-1`} />
+                <Text style={tw`text-[9px] font-extrabold text-amber-800`}>Auto-Nav 🗺️</Text>
+              </View>
+            )}
+          </View>
+
+          {/* ================= SEQUENTIAL 1-BY-1 RIDER DISPATCH BANNER ================= */}
+          <View style={tw`bg-slate-900 border border-slate-700 rounded-2xl p-2.5 mb-2.5 shadow-sm`}>
+            <View style={tw`flex-row justify-between items-center mb-1`}>
+              <View style={tw`flex-row items-center`}>
+                <Ionicons name="radio" size={13} color="#34D399" style={tw`mr-1.5`} />
+                <Text style={tw`text-[10px] font-bold text-emerald-400 tracking-wider`}>
+                  1-BY-1 RIDER DISPATCH QUEUE
+                </Text>
+              </View>
+              <View style={tw`px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40`}>
+                <Text style={tw`text-[9.5px] font-bold text-amber-300`}>
+                  ⏱️ {context.dispatchInfo.countdownSeconds}s Left
+                </Text>
+              </View>
+            </View>
+
+            <Text style={tw`text-[11px] font-semibold text-white mb-0.5`}>
+              Rider Offer: {context.dispatchInfo.currentRiderName}
+            </Text>
+            <Text style={tw`text-[9.5px] text-slate-300 italic`}>
+              {context.dispatchInfo.currentRiderIndex === 0
+                ? "🎯 You are the nearest rider in area! Accept before timer ends."
+                : `🔄 Re-assigned to you (Rider ${context.dispatchInfo.currentRiderIndex + 1} of ${context.dispatchInfo.totalAreaRiders}) as previous rider did not respond.`}
+            </Text>
+          </View>
+
+
+          {/* ================= 1. CLEAN COMPACT HEADER & PAYOUT ================= */}
+          <View style={tw`flex-row justify-between items-center pb-3 border-b border-slate-100`}>
+            {/* Left: Guaranteed Payout */}
+            <View>
+              <Text style={[Typography.caption, { color: '#047857', fontSize: 10, fontWeight: '700', letterSpacing: 0.3 }]}>
+                NEW DELIVERY REQUEST
+              </Text>
+              <View style={tw`flex-row items-baseline mt-0.5`}>
+                <Text style={[Typography.amountLarge, { color: '#0F172A', fontSize: 22, fontWeight: '800' }]}>
+                  ₹{incomingOrder.totalPayout}
+                </Text>
+                <View style={tw`ml-2 px-1.5 py-0.2 rounded bg-emerald-50 border border-emerald-200`}>
+                  <Text style={[Typography.badge, { color: '#047857', fontSize: 9 }]}>
+                    +₹{incomingOrder.surgeBonus || 35} Surge
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Right: Distance & Item Meta */}
+            <View style={tw`items-end`}>
+              <View style={tw`flex-row items-center`}>
+                <Ionicons name="navigate-circle" size={13} color="#047857" style={tw`mr-1`} />
+                <Text style={[Typography.bodyBold, { color: '#0F172A', fontSize: 11 }]}>
+                  {totalDistance} km total
+                </Text>
+              </View>
+              <Text style={[Typography.captionItalic, { color: '#64748B', fontSize: 9.5, marginTop: 1 }]}>
+                {incomingOrder.items?.length || 4} Pack Items • Express 10m
+              </Text>
+            </View>
+          </View>
+
+          {/* ================= 2. TRANSIT TIMELINE (PICKUP ➔ DROP) ================= */}
+          <View style={tw`py-3 border-b border-slate-100 gap-2.5`}>
+            {/* Pickup Dark Store */}
+            <View style={tw`flex-row items-start`}>
+              <View style={tw`items-center mr-2.5 mt-0.5`}>
+                <View style={tw`w-5 h-5 rounded-full bg-blue-600 items-center justify-center shadow-sm`}>
+                  <Ionicons name="storefront" size={10} color="#FFFFFF" />
+                </View>
+                <View style={tw`w-0.5 h-6 bg-slate-200 my-0.5`} />
+              </View>
+              <View style={tw`flex-1`}>
+                <View style={tw`flex-row justify-between items-center`}>
+                  <Text style={[Typography.caption, { color: '#2563EB', fontSize: 9.5, fontWeight: '700' }]}>
+                    PICKUP DARK STORE ({incomingOrder.storeDistanceKm || 0.8} km)
+                  </Text>
+                  <Text style={[Typography.captionItalic, { color: '#2563EB', fontSize: 9 }]}>
+                    Rack #B-04 • Shelf 2
+                  </Text>
+                </View>
+                <Text style={[Typography.bodyMedium, { color: '#0F172A', fontSize: 11, marginTop: 1 }]} numberOfLines={1}>
+                  {incomingOrder.storeName}
+                </Text>
+              </View>
+            </View>
+
+            {/* Drop Customer Address */}
+            <View style={tw`flex-row items-start`}>
+              <View style={tw`items-center mr-2.5 mt-0.5`}>
+                <View style={tw`w-5 h-5 rounded-full bg-emerald-600 items-center justify-center shadow-sm`}>
+                  <Ionicons name="location" size={11} color="#FFFFFF" />
+                </View>
+              </View>
+              <View style={tw`flex-1`}>
+                <View style={tw`flex-row justify-between items-center`}>
+                  <Text style={[Typography.caption, { color: '#047857', fontSize: 9.5, fontWeight: '700' }]}>
+                    DROP LOCATION ({incomingOrder.customerDistanceKm || 2.4} km)
+                  </Text>
+                  <Text
+                    style={[
+                      Typography.caption,
+                      {
+                        color: incomingOrder.paymentMode === 'PREPAID' ? '#047857' : '#D97706',
+                        fontSize: 9.5,
+                        fontWeight: '700',
+                      },
+                    ]}
+                  >
+                    {incomingOrder.paymentMode === 'PREPAID' ? '💳 Prepaid' : `💵 Collect ₹${incomingOrder.totalAmount}`}
+                  </Text>
+                </View>
+                <Text style={[Typography.bodyMedium, { color: '#0F172A', fontSize: 11, marginTop: 1 }]} numberOfLines={1}>
+                  {incomingOrder.customerName} • <Text style={{ fontWeight: '400' }}>{incomingOrder.customerAddress}</Text>
+                </Text>
+              </View>
+            </View>
+          </View>
+
+
+          {/* ================= 3. DUAL ACTION BUTTON DOCK ================= */}
+          <View style={tw`flex-row gap-2.5 pt-3`}>
+            {/* Decline Button */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={handleReject}
+              style={tw`flex-1 py-3 rounded-2xl bg-slate-100 border border-slate-200 items-center justify-center`}
+            >
+              <Text style={[Typography.buttonText, { color: '#64748B', fontSize: 11 }]}>
+                Pass
+              </Text>
+
+            </TouchableOpacity>
+
+            {/* Accept Order Button */}
+            <TouchableOpacity
+              activeOpacity={0.88}
+              onPress={handleAcceptWithSettings}
+              style={tw`flex-2 py-3 rounded-2xl bg-emerald-600 border border-emerald-500 items-center justify-center flex-row shadow-md`}
+            >
+              <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" style={tw`mr-1.5`} />
+              <Text style={[Typography.buttonText, { color: '#FFFFFF', fontSize: 12, fontWeight: '900' }]}>
+                ACCEPT (₹{incomingOrder.totalPayout})
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
